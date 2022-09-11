@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Arduino Web Plotter</title>
+        <link rel="stylesheet" href="style.css">
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js" integrity="sha512-VJ6+sp2E5rFQk05caiXXzQd1wBABpjEj1r5kMiLmGAAgwPItw1YpqsCCBtq8Yr1x6C49/mTpRdXtq8O2RcZhlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+
+    <body>
+        <div class="navbar"><span>Arduino Web Plotter</span></div>
+        <div id="sample"></div>
+        <div class = "wrapper">
+            <div id="chart"></div>
+        </div>
+
+
+        <script>
+
+            const start = Date.now();
+            const xrange = 5000;
+            var xmin = 0;
+            var xmax = xrange;
+
+            Plotly.plot('chart', [{
+                x:[0],
+                y:[0],
+                type: 'line'
+            }], {
+                xaxis: {
+                    range: [xmin, xmax]
+                },
+                yaxis: {
+                    autoscale: true
+                }
+            });
+
+
+            var socket = io();
+
+            socket.on('data', function(data){
+                document.getElementById('sample').innerHTML = data;
+                plotData(data);
+            });
+
+            function plotData(data) {
+                data = parseInt(data.slice(6), 10);
+                var time = Date.now() - start;
+                console.log(time);
+
+                Plotly.extendTraces('chart', {x:[[time]], y:[[data]]},[0], 500);
+                 
+                if (time > xmax) {
+                    xmax += 10*(time-xmax);
+                    xmin = xmax-xrange;
+                    
+                    Plotly.relayout('chart', {
+                        xaxis: {
+                            range: [xmin, xmax]
+                        }
+                    })
+                }
+                
+                
+            }
+        </script>
+    </body>
+</html>
