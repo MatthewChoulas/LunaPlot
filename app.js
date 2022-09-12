@@ -4,7 +4,6 @@ import * as fs from 'fs'
 import {Server} from 'socket.io'
 
 
-
 var index = fs.readFileSync('index.html');
 
 const parser = new ReadlineParser();
@@ -32,5 +31,6 @@ parser.on('data', function(data){
 
     io.emit('data', data);
 });
+
 
 app.listen(3000);

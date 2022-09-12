@@ -12,107 +12,110 @@
         <div id="sample"></div>
         <div class = "wrapper">
             <div id="chart"></div>
+            
         </div>
 
-
+        
         <script>
-            const graphDiv = document.getElementById('chart');
-            const start = Date.now();
-            var first = true;
 
-            const xrange = 5000;
-            var xmin = 0;
-            var xmax = xrange;
+        const graphDiv = document.getElementById('chart');
+        const start = Date.now();
+        var first = true;
 
-            var traces = {};
+        const xrange = 5000;
+        var xmin = 0;
+        var xmax = xrange;
 
-            var placeHolderData = [{
-                x: [0],
-                y: [0],
-                type: 'scatter'
-            }];
+        var traces = {};
 
+        var placeHolderData = [{
+            x: [0],
+            y: [0],
+            type: 'scatter'
+        }];
+
+
+
+        Plotly.newPlot(graphDiv, placeHolderData);
+
+
+        var socket = io();
+
+        socket.on('data', function(data){
+            document.getElementById('sample').innerHTML = data;
+            plotData(data);
+        });
+
+
+
+
+        function plotData(data) {
             
+            var value = parseInt(data.slice(6), 10);
+            var time = Date.now() - start;
 
-            Plotly.newPlot(graphDiv, placeHolderData);
 
+            var dataObj = {};
+            
+            data = data.trim().split(" ");
 
-            var socket = io();
-
-            socket.on('data', function(data){
-                document.getElementById('sample').innerHTML = data;
-                plotData(data);
+            data.forEach((element, index) => {
+                var pair = element.split(":");
+                dataObj[pair[0]] = parseInt(pair[1]);
             });
 
-
-
-
-            function plotData(data) {
-                
-                var value = parseInt(data.slice(6), 10);
-                var time = Date.now() - start;
-
-
-                var dataObj = {};
-                
-                data = data.trim().split(" ");
-
-                data.forEach((element, index) => {
-                    var pair = element.split(":");
-                    dataObj[pair[0]] = parseInt(pair[1]);
-                });
-
-                var dataKeys = Object.keys(dataObj);
-               
-                
-                if (first && dataKeys.length > 0) {
-                    first = false;
-                    var name = dataKeys[0];
-                    Plotly.addTraces(graphDiv, [{x: [0], y: [0], name: name, type:"line"}]);
-                    traces[name] = 0;
-                    Plotly.deleteTraces(graphDiv, 0);
-                }
-                
-                traceCount = Object.keys(traces).length;
-                xValues = Array(traceCount).fill([time]);
-                yValues = Array(traceCount).fill([0]);
-                traceIndexes = Array(traceCount).fill(0).map((x, y) => x + y);
- 
-                for (let i in dataKeys) {
-                    
-                    var trace = dataKeys[i];
-                    if (!(traces.hasOwnProperty(trace))) {
-                        traces[trace] = Object.keys(traces).length;
-                        Plotly.addTraces('chart', [{x: [0], y: [0], name: trace, type:"line"}]);
-                    }
-
-                    var traceIndex = traces[trace];
-                    console.log(dataObj[trace]);
-                    yValues[traceIndex] = [dataObj[trace]];
-                }
-        
-
-                Plotly.extendTraces('chart', {
-                    x:xValues, 
-                    y:yValues
-                }, traceIndexes, 500);
-
-                
-                 
-                if (time > xmax) {
-                    xmax += 10*(time-xmax);
-                    xmin = xmax-xrange;
-                    
-                    Plotly.relayout('chart', {
-                        xaxis: {
-                            range: [xmin, xmax]
-                        }
-                    })
-                }
-                
-                
-                
+            var dataKeys = Object.keys(dataObj);
+            
+            
+            if (first && dataKeys.length > 0) {
+                first = false;
+                var name = dataKeys[0];
+                Plotly.addTraces(graphDiv, [{x: [0], y: [0], name: name, type:"line"}]);
+                traces[name] = 0;
+                Plotly.deleteTraces(graphDiv, 0);
             }
+            
+            traceCount = Object.keys(traces).length;
+            xValues = Array(traceCount).fill([time]);
+            yValues = Array(traceCount).fill([0]);
+            traceIndexes = Array(traceCount).fill(0).map((x, y) => x + y);
+
+            for (let i in dataKeys) {
+                
+                var trace = dataKeys[i];
+                if (!(traces.hasOwnProperty(trace))) {
+                    traces[trace] = Object.keys(traces).length;
+                    Plotly.addTraces('chart', [{x: [0], y: [0], name: trace, type:"line"}]);
+                }
+
+                var traceIndex = traces[trace];
+                console.log(dataObj[trace]);
+                yValues[traceIndex] = [dataObj[trace]];
+            }
+
+
+            Plotly.extendTraces('chart', {
+                x:xValues, 
+                y:yValues
+            }, traceIndexes, 500);
+
+            
+                
+            if (time > xmax) {
+                xmax += 10*(time-xmax);
+                xmin = xmax-xrange;
+                
+                Plotly.relayout('chart', {
+                    xaxis: {
+                        range: [xmin, xmax]
+                    }
+                })
+            }
+            
+            
+            
+        }
+
         </script>
     </body>
 </html>
