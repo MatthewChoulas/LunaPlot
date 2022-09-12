@@ -24,7 +24,7 @@
             var xmin = 0;
             var xmax = xrange;
 
-            var traces = [];
+            var traces = {};
 
             var placeHolderData = [{
                 x: [0],
@@ -53,39 +53,49 @@
                 var time = Date.now() - start;
 
 
+                var dataObj = {};
                 
                 data = data.split(" ");
-                data = data.map((element,index) => {
-                    element = element.split(":");
-                    element[1] = parseInt(element[1]);
-                    return element;
+
+                data.forEach((element, index) => {
+                    var pair = element.split(":");
+                    dataObj[pair[0]] = parseInt(pair[1]);
                 });
-                
+                //console.log(dataObj);
+                var dataKeys = Object.keys(dataObj);
                
                 
-                if (first && data.length > 0) {
+                if (first && dataKeys.length > 0) {
                     first = false;
-                    console.log("first");
-                    var name = data[0][0]
+                    var name = dataKeys[0];
                     Plotly.addTraces(graphDiv, [{x: [0], y: [0], name: name, type:"line"}]);
-                    traces.push(name)
+                    traces[name] = 0;
                     Plotly.deleteTraces(graphDiv, 0);
                 }
+                
+                xValues = Array(dataKeys.length).fill([time]);
+                yValues = Array(dataKeys.length).fill([0]);
+                traceIndexes = Array(dataKeys.length).fill(0).map((x, y) => x + y);
  
-                for (let i in data) {
-                    var trace = data[i];
-                    if (traces.includes(trace[0]) == false) {
-                        traces.push(trace[0]);
-                        Plotly.addTraces('chart', [{x: [0], y: [0], name: trace[0], type:"line"}]);
+                for (let i in dataKeys) {
+                    
+                    var trace = dataKeys[i];
+                    if (!(traces.hasOwnProperty(trace))) {
+                        traces[trace] = Object.keys(traces).length;
+                        Plotly.addTraces('chart', [{x: [0], y: [0], name: trace, type:"line"}]);
                     }
+
+                    var traceIndex = traces[trace];
+                    console.log(dataObj[trace]);
+                    yValues[traceIndex] = [dataObj[trace]];
                 }
                 
-                xValues = Array(data.length).fill([time]);
-                yValues = data.map((trace) => {
-                    return [trace[1]];
-                });
-                traceIndexes = Array(data.length).fill(0).map((x, y) => x + y);
+                
+
+                
                 console.log(yValues);
+                
+                //console.log(yValues);
 
                 Plotly.extendTraces('chart', {
                     x:xValues, 
