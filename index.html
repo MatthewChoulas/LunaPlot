@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
     <head>
-        <title>Arduino Web Plotter Change</title>
+        <title>Arduino Web Plotter</title>
         <link rel="stylesheet" href="style.css">
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.2/socket.io.js" integrity="sha512-VJ6+sp2E5rFQk05caiXXzQd1wBABpjEj1r5kMiLmGAAgwPItw1YpqsCCBtq8Yr1x6C49/mTpRdXtq8O2RcZhlQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
         <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
@@ -16,18 +16,25 @@
 
 
         <script>
+            const graphDiv = document.getElementById('chart');
             const start = Date.now();
+            var first = true;
+
             const xrange = 5000;
             var xmin = 0;
             var xmax = xrange;
 
             var traces = [];
 
-            Plotly.plot('chart', [{
+            var placeHolderData = [{
+                x: [0],
                 y: [0],
-                type: "line"
-                
-            }]);
+                type: 'scatter'
+            }];
+
+            
+
+            Plotly.newPlot(graphDiv, placeHolderData);
 
 
             var socket = io();
@@ -37,13 +44,16 @@
                 plotData(data);
             });
 
+
+
+
             function plotData(data) {
-                data = parseInt(data.slice(6), 10);
+                
+                var value = parseInt(data.slice(6), 10);
                 var time = Date.now() - start;
 
-                value = parseInt(data.slice(6), 10);
 
-                /*
+                
                 data = data.split(" ");
                 data = data.map((element,index) => {
                     element = element.split(":");
@@ -53,47 +63,38 @@
                 
                
                 
-                
-
+                if (first && data.length > 0) {
+                    first = false;
+                    console.log("first");
+                    var name = data[0][0]
+                    Plotly.addTraces(graphDiv, [{x: [0], y: [0], name: name, type:"line"}]);
+                    traces.push(name)
+                    Plotly.deleteTraces(graphDiv, 0);
+                }
+ 
                 for (let i in data) {
                     var trace = data[i];
                     if (traces.includes(trace[0]) == false) {
-                        console.log('hi');
                         traces.push(trace[0]);
-                        Plotly.addTrace('chart', [{x: [0], y: [0], name: trace[0], type:"line", mode: "lines+markers"}]);
+                        Plotly.addTraces('chart', [{x: [0], y: [0], name: trace[0], type:"line"}]);
                     }
                 }
-        
                 
-                
-                xValues = Array(data.length).fill([0]);
+                xValues = Array(data.length).fill([time]);
                 yValues = data.map((trace) => {
                     return [trace[1]];
                 });
                 traceIndexes = Array(data.length).fill(0).map((x, y) => x + y);
-                console.log(traceIndexes);
+                console.log(yValues);
 
                 Plotly.extendTraces('chart', {
                     x:xValues, 
                     y:yValues
                 }, traceIndexes, 500);
-                */
-               /*
-                var first = true;
-
-                if (first) {
-                    first = false;
-                    Plotly.addTraces('chart', [{x: [0], y: [0], name: trace[0], type:"line", mode: "lines+markers"}]);
-                }
-                */
-                console.log(value);
-
-                Plotly.extendTraces('chart', {
-                    y:[[value]]}
-                    , [0], 500);
+                
 
 
-                /*
+                
                  
                 if (time > xmax) {
                     xmax += 10*(time-xmax);
@@ -105,7 +106,7 @@
                         }
                     })
                 }
-                */
+                
                 
                 
             }
