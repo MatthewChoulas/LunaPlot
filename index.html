@@ -55,13 +55,13 @@
 
                 var dataObj = {};
                 
-                data = data.split(" ");
+                data = data.trim().split(" ");
 
                 data.forEach((element, index) => {
                     var pair = element.split(":");
                     dataObj[pair[0]] = parseInt(pair[1]);
                 });
-                //console.log(dataObj);
+
                 var dataKeys = Object.keys(dataObj);
                
                 
@@ -73,9 +73,10 @@
                     Plotly.deleteTraces(graphDiv, 0);
                 }
                 
-                xValues = Array(dataKeys.length).fill([time]);
-                yValues = Array(dataKeys.length).fill([0]);
-                traceIndexes = Array(dataKeys.length).fill(0).map((x, y) => x + y);
+                traceCount = Object.keys(traces).length;
+                xValues = Array(traceCount).fill([time]);
+                yValues = Array(traceCount).fill([0]);
+                traceIndexes = Array(traceCount).fill(0).map((x, y) => x + y);
  
                 for (let i in dataKeys) {
                     
@@ -89,20 +90,12 @@
                     console.log(dataObj[trace]);
                     yValues[traceIndex] = [dataObj[trace]];
                 }
-                
-                
-
-                
-                console.log(yValues);
-                
-                //console.log(yValues);
+        
 
                 Plotly.extendTraces('chart', {
                     x:xValues, 
                     y:yValues
                 }, traceIndexes, 500);
-                
-
 
                 
                  
